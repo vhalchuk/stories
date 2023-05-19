@@ -4,12 +4,12 @@ import {
   Circle,
   Flex,
   IconButton,
-  Spinner,
-  Text,
   Modal,
   ModalContent,
+  Spinner,
+  Text,
 } from "@chakra-ui/react";
-import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { FC, memo, useEffect, useRef, useState } from "react";
 import { Cube } from "./dependencies/Cube";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useLatestRef } from "./dependencies/useLatestRef";
@@ -156,9 +156,9 @@ const storyGroups: StoryGroup[] = [
   },
 ];
 
-type Subscriber<T extends any[]> = (...args: T) => void;
+type Subscriber<T extends unknown[]> = (...args: T) => void;
 
-class PubSub<T extends any[]> {
+class PubSub<T extends unknown[]> {
   #subscribers: Subscriber<T>[] = [];
 
   subscribe(subscriber: Subscriber<T>) {
@@ -178,8 +178,8 @@ class PubSub<T extends any[]> {
   }
 }
 
-const moveStartedPubSub = new PubSub();
-const moveEndedPubSub = new PubSub();
+const pauseVideoPubSub = new PubSub();
+const unpauseVideoPubSub = new PubSub();
 
 function App() {
   const [storyGroupIndex, setStoryGroupIndex] = useState<null | number>(null);
@@ -204,7 +204,10 @@ function App() {
       <Modal isOpen={isOpen} onClose={handleClose} size="full">
         <ModalContent>
           <Cube
-            index={storyGroupIndex!}
+            index={
+              /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+              storyGroupIndex!
+            }
             onChange={setStoryGroupIndex}
             hasNext={(index) => index < storyGroups.length - 1}
             lockScrolling
@@ -249,12 +252,8 @@ function App() {
                 />
               );
             }}
-            onMoveStart={() => {
-              moveStartedPubSub.publish();
-            }}
-            onMoveEnd={() => {
-              moveEndedPubSub.publish();
-            }}
+            onMoveStart={pauseVideoPubSub.publish}
+            onMoveEnd={unpauseVideoPubSub.publish}
           />
         </ModalContent>
       </Modal>
@@ -309,18 +308,25 @@ const StoryGroup: FC<{
     if (progress === 100) {
       setTimeout(handleNextTap, UPDATE_PROGRESS_EVERY_MS);
     }
-  }, [progress]);
+  }, [progress, handleNextTap]);
 
-  const ContentBackground: ContentBackground =
-    story.type === "image" ? ImageBackground : VideoBackground;
+  const Content: ContentComponent =
+    story.type === "image" ? ImageContent : VideoContent;
 
   return (
     <Box backgroundColor="#3a3a3a" width="100%" height="100%">
-      <ContentBackground
-        src={story.src}
-        active={isActiveStoryGroup}
-        setProgress={setProgress}
+      <Box
+        style={{
+          position: "relative",
+          height: "100%",
+          width: "100%",
+        }}
       >
+        <Content
+          src={story.src}
+          active={isActiveStoryGroup}
+          setProgress={setProgress}
+        />
         <Box
           style={{
             position: "relative",
@@ -364,7 +370,7 @@ const StoryGroup: FC<{
             <Box height="100%" width="50%" onClick={handleNextTap} />
           </Flex>
         </Box>
-      </ContentBackground>
+      </Box>
     </Box>
   );
 };
@@ -397,19 +403,13 @@ const ProgressLine: FC<{ progress: number; hasTransition: boolean }> = ({
   );
 };
 
-type ContentBackground = FC<{
+type ContentComponent = FC<{
   src: string;
-  children: ReactNode;
   active: boolean;
   setProgress: (progress: number | ((prevProgress: number) => number)) => void;
 }>;
 
-const ImageBackground: ContentBackground = ({
-  src,
-  setProgress,
-  active,
-  children,
-}) => {
+const ImageContent: ContentComponent = memo(({ src, setProgress, active }) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
@@ -442,10 +442,10 @@ const ImageBackground: ContentBackground = ({
       image.addEventListener("load", startProgressInterval);
     }
 
-    const unsubscribeFromMoveStarted = moveStartedPubSub.subscribe(() => {
+    const unsubscribeFromMoveStarted = pauseVideoPubSub.subscribe(() => {
       isPaused = true;
     });
-    const unsubscribeFromMoveEnded = moveEndedPubSub.subscribe(() => {
+    const unsubscribeFromMoveEnded = unpauseVideoPubSub.subscribe(() => {
       isPaused = false;
     });
 
@@ -455,39 +455,25 @@ const ImageBackground: ContentBackground = ({
       unsubscribeFromMoveStarted();
       unsubscribeFromMoveEnded();
     };
-  }, [active, src]);
+  }, [active, src, setProgress]);
 
   return (
-    <Box
+    <img
+      ref={imageRef}
+      src={src}
       style={{
-        position: "relative",
-        height: "100%",
+        position: "absolute",
         width: "100%",
+        height: "100%",
+        objectFit: "cover",
       }}
-    >
-      <img
-        ref={imageRef}
-        src={src}
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-        loading="lazy"
-        alt="Story"
-      />
-      {children}
-    </Box>
+      loading="lazy"
+      alt="Story"
+    />
   );
-};
+});
 
-const VideoBackground: ContentBackground = ({
-  src,
-  active,
-  setProgress,
-  children,
-}) => {
+const VideoContent: ContentComponent = memo(({ src, active, setProgress }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const loadingSpinnerRef = useRef<HTMLDivElement>(null);
   const activeRef = useLatestRef(active);
@@ -515,12 +501,12 @@ const VideoBackground: ContentBackground = ({
         setProgress(clampedValue);
       };
     }
-  }, []);
+  }, [setProgress]);
 
   useEffect(() => {
     const video = videoRef.current;
 
-    return moveStartedPubSub.subscribe(() => {
+    return pauseVideoPubSub.subscribe(() => {
       if (video) {
         video.pause();
       }
@@ -530,7 +516,7 @@ const VideoBackground: ContentBackground = ({
   useEffect(() => {
     const video = videoRef.current;
 
-    return moveEndedPubSub.subscribe(() => {
+    return unpauseVideoPubSub.subscribe(() => {
       if (video && activeRef.current) {
         video.play();
       }
@@ -577,13 +563,7 @@ const VideoBackground: ContentBackground = ({
   }, [src]);
 
   return (
-    <Box
-      style={{
-        height: "100%",
-        width: "100%",
-        position: "relative",
-      }}
-    >
+    <>
       <video
         ref={videoRef}
         src={src}
@@ -613,9 +593,8 @@ const VideoBackground: ContentBackground = ({
           <Spinner size="md" color="white" speed="0.75s" />
         </Circle>
       </div>
-      {children}
-    </Box>
+    </>
   );
-};
+});
 
 export default App;
