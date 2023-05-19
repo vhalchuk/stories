@@ -237,7 +237,7 @@ function App() {
   );
 }
 
-const UPDATE_PROGRESS_EVERY_MS = 500;
+const UPDATE_PROGRESS_EVERY_MS = 200;
 
 const StoryGroup: FC<{
   storyGroup: StoryGroup;
@@ -392,13 +392,20 @@ const ImageBackground: ContentBackground = ({
 
     if (!image || !active) return;
 
+    let isPaused = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const startProgressInterval = () => {
+      const IMAGE_STORY_SHOW_TIME_MS = 10_000; // 10 seconds
+      const numberOfIntervals =
+        IMAGE_STORY_SHOW_TIME_MS / UPDATE_PROGRESS_EVERY_MS;
+      const updatePercent = 100 / numberOfIntervals;
+
       intervalId = setInterval(() => {
+        if (isPaused) return;
+
         setProgress((prevProgress) => {
-          // Increase the progress by 10% every UPDATE_PROGRESS_EACH_MS
-          const newProgress = prevProgress + 10;
+          const newProgress = prevProgress + updatePercent;
           return newProgress <= 100 ? newProgress : 100;
         });
       }, UPDATE_PROGRESS_EVERY_MS);
@@ -410,9 +417,18 @@ const ImageBackground: ContentBackground = ({
       image.addEventListener("load", startProgressInterval);
     }
 
+    const unsubscribeFromMoveStarted = moveStartedPubSub.subscribe(() => {
+      isPaused = true;
+    });
+    const unsubscribeFromMoveEnded = moveEndedPubSub.subscribe(() => {
+      isPaused = false;
+    });
+
     return () => {
       image.removeEventListener("load", startProgressInterval);
       intervalId && clearInterval(intervalId);
+      unsubscribeFromMoveStarted();
+      unsubscribeFromMoveEnded();
     };
   }, [active, src]);
 
