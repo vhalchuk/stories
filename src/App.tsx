@@ -1,6 +1,6 @@
 import "./App.css";
 import { Box, Circle, Flex, IconButton, Spinner, Text } from "@chakra-ui/react";
-import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { FC, forwardRef, ReactNode, useEffect, useRef, useState } from "react";
 import { Cube } from "./dependencies/Cube";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useLatestRef } from "./dependencies/useLatestRef";
@@ -372,6 +372,26 @@ const ProgressLine: FC<{ progress: number; hasTransition: boolean }> = ({
   );
 };
 
+const SpinnerOverlay = forwardRef<HTMLDivElement>((_, ref) => {
+  return (
+    <div
+      ref={ref}
+      style={{
+        display: "none",
+        position: "absolute",
+        height: "100%",
+        width: "100%",
+        inset: 0,
+        placeItems: "center",
+      }}
+    >
+      <Circle backgroundColor="rgba(0,0,0,0.5)" padding="0.625rem">
+        <Spinner size="md" color="white" speed="0.75s" />
+      </Circle>
+    </div>
+  );
+});
+
 type ContentBackground = FC<{
   src: string;
   children: ReactNode;
@@ -386,6 +406,30 @@ const ImageBackground: ContentBackground = ({
   children,
 }) => {
   const imageRef = useRef<HTMLImageElement>(null);
+  const spinnerRef = useRef<HTMLDivElement>(null);
+
+  // MANAGE LOADING STATE
+  useEffect(() => {
+    // TODO: remove duplicate code
+    const image = imageRef.current;
+    const loadingSpinner = spinnerRef.current;
+
+    if (!image || !active || image.complete || !loadingSpinner) return;
+
+    loadingSpinner.style.display = "grid";
+
+    const hideSpinner = () => {
+      if (loadingSpinner) {
+        loadingSpinner.style.display = "none";
+      }
+    };
+
+    image.addEventListener("load", hideSpinner);
+
+    return () => {
+      image.removeEventListener("load", hideSpinner);
+    };
+  }, [src]);
 
   useEffect(() => {
     const image = imageRef.current;
@@ -436,6 +480,7 @@ const ImageBackground: ContentBackground = ({
         loading="lazy"
         alt="Story"
       />
+      <SpinnerOverlay ref={spinnerRef} />
       {children}
     </Box>
   );
@@ -448,7 +493,7 @@ const VideoBackground: ContentBackground = ({
   children,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const loadingSpinnerRef = useRef<HTMLDivElement>(null);
+  const spinnerRef = useRef<HTMLDivElement>(null);
   const activeRef = useLatestRef(active);
 
   useEffect(() => {
@@ -515,7 +560,7 @@ const VideoBackground: ContentBackground = ({
   // MANAGE LOADING STATE
   useEffect(() => {
     const video = videoRef.current;
-    const loadingSpinner = loadingSpinnerRef.current;
+    const loadingSpinner = spinnerRef.current;
 
     const handleWaiting = () => {
       if (loadingSpinner) {
@@ -557,21 +602,7 @@ const VideoBackground: ContentBackground = ({
         autoPlay={false}
         playsInline
       />
-      <div
-        ref={loadingSpinnerRef}
-        style={{
-          display: "none",
-          position: "absolute",
-          height: "100%",
-          width: "100%",
-          inset: 0,
-          placeItems: "center",
-        }}
-      >
-        <Circle backgroundColor="rgba(0,0,0,0.5)" padding="0.625rem">
-          <Spinner size="md" color="white" speed="0.75s" />
-        </Circle>
-      </div>
+      <SpinnerOverlay ref={spinnerRef} />
       {children}
     </Box>
   );
