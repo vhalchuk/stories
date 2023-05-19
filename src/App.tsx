@@ -1,13 +1,6 @@
 import "./App.css";
 import { Box, Circle, Flex, IconButton, Spinner, Text } from "@chakra-ui/react";
-import {
-  CSSProperties,
-  FC,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FC, ReactNode, useEffect, useRef, useState } from "react";
 import { Cube } from "./dependencies/Cube";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useLatestRef } from "./dependencies/useLatestRef";
@@ -226,16 +219,14 @@ function App() {
                   onNoPreviousStory={handleNoPreviousStory}
                   onNoNextStory={handleNoNextStory}
                   onClose={onClose}
-                  active={storyGroupIndex === index}
+                  isActiveStoryGroup={storyGroupIndex === index}
                 />
               );
             }}
             onMoveStart={() => {
-              console.log("MOVE START");
               moveStartedPubSub.publish();
             }}
             onMoveEnd={() => {
-              console.log("MOVE END");
               moveEndedPubSub.publish();
             }}
           />
@@ -250,10 +241,17 @@ const StoryGroup: FC<{
   onNoPreviousStory: () => void;
   onNoNextStory: () => void;
   onClose: () => void;
-  active: boolean;
-}> = ({ storyGroup, onNoPreviousStory, onNoNextStory, onClose, active }) => {
+  isActiveStoryGroup: boolean;
+}> = ({
+  storyGroup,
+  onNoPreviousStory,
+  onNoNextStory,
+  onClose,
+  isActiveStoryGroup,
+}) => {
   const [storyIndex, setStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const story = storyGroup.stories[storyIndex];
 
   const handlePreviousTap = () => {
     const previousIndex = storyIndex - 1;
@@ -261,6 +259,7 @@ const StoryGroup: FC<{
 
     if (hasPreviousStory) {
       setStoryIndex(previousIndex);
+      setProgress(0);
     } else {
       onNoPreviousStory();
     }
@@ -272,24 +271,20 @@ const StoryGroup: FC<{
 
     if (hasNextStory) {
       setStoryIndex(nextIndex);
+      setProgress(0);
     } else {
       onNoNextStory();
     }
   };
 
-  const story = storyGroup.stories[storyIndex];
   const ContentBackground: ContentBackground =
     story.type === "image" ? ImageBackground : VideoBackground;
 
   return (
     <Box backgroundColor="#3a3a3a" width="100%" height="100%">
       <ContentBackground
-        style={{
-          height: "100%",
-          width: "100%",
-        }}
         src={story.src}
-        active={active}
+        active={isActiveStoryGroup}
         setProgress={setProgress}
       >
         <Box
@@ -308,8 +303,15 @@ const StoryGroup: FC<{
               const isPast = index < storyIndex;
               const isCurrent = index === storyIndex;
               const storyProgress = isPast ? 100 : isCurrent ? progress : 0;
+              const hasTransition = progress !== 0;
 
-              return <ProgressLine key={story.id} progress={storyProgress} />;
+              return (
+                <ProgressLine
+                  key={story.id}
+                  progress={storyProgress}
+                  hasTransition={hasTransition}
+                />
+              );
             })}
           </Flex>
           <Flex justifyContent="space-between" alignItems="center">
@@ -333,7 +335,10 @@ const StoryGroup: FC<{
   );
 };
 
-const ProgressLine: FC<{ progress: number }> = ({ progress }) => {
+const ProgressLine: FC<{ progress: number; hasTransition: boolean }> = ({
+  progress,
+  hasTransition,
+}) => {
   return (
     <Box
       style={{
@@ -349,10 +354,7 @@ const ProgressLine: FC<{ progress: number }> = ({ progress }) => {
           height: "2px",
           borderRadius: "1px",
           backgroundColor: "white",
-          transition:
-            progress === 100 || progress === 0
-              ? undefined
-              : "width 0.5s linear", // TODO
+          transition: hasTransition ? "width 0.5s linear" : undefined,
         }}
       ></Box>
     </Box>
@@ -361,15 +363,21 @@ const ProgressLine: FC<{ progress: number }> = ({ progress }) => {
 
 type ContentBackground = FC<{
   src: string;
-  style: CSSProperties;
   children: ReactNode;
   active: boolean;
   setProgress: (progress: number) => void;
 }>;
 
-const ImageBackground: ContentBackground = ({ src, style, children }) => {
+const ImageBackground: ContentBackground = ({ src, children }) => {
   return (
-    <Box backgroundImage={`url(${src})`} bgSize="cover" style={style}>
+    <Box
+      backgroundImage={`url(${src})`}
+      bgSize="cover"
+      style={{
+        height: "100%",
+        width: "100%",
+      }}
+    >
       {children}
     </Box>
   );
@@ -377,7 +385,6 @@ const ImageBackground: ContentBackground = ({ src, style, children }) => {
 
 const VideoBackground: ContentBackground = ({
   src,
-  style,
   active,
   setProgress,
   children,
@@ -389,8 +396,10 @@ const VideoBackground: ContentBackground = ({
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.ontimeupdate = (event) => {
-        const currentTime = event.currentTarget?.currentTime || 0;
-        const duration = event.currentTarget?.duration || 0;
+        const currentTime =
+          (event.currentTarget as HTMLVideoElement)?.currentTime || 0;
+        const duration =
+          (event.currentTarget as HTMLVideoElement)?.duration || 0;
         const progress = (currentTime / duration) * 100;
 
         if (Number.isNaN(progress)) return;
@@ -425,13 +434,11 @@ const VideoBackground: ContentBackground = ({
     const video = videoRef.current;
 
     if (active && video) {
-      console.log("PLAY");
       video.play();
     }
 
     return () => {
       if (video) {
-        console.log("PAUSE");
         video.pause();
         video.currentTime = 0;
       }
@@ -464,7 +471,8 @@ const VideoBackground: ContentBackground = ({
   return (
     <Box
       style={{
-        ...style,
+        height: "100%",
+        width: "100%",
         position: "relative",
       }}
     >

@@ -189,6 +189,8 @@ export function Cube({
   const { bind } = useGestureResponder({
     onStartShouldSet: () => false,
     onMoveShouldSet: ({ direction }) => {
+      onMoveStart?.();
+
       if (!enableGestures) {
         return false;
       }
@@ -257,10 +259,6 @@ export function Cube({
         perspective: perspective + "px",
       }}
       {...bind}
-      onTouchStart={(...args) => {
-        bind?.onTouchStart?.(...args);
-        onMoveStart?.();
-      }}
       onTouchEnd={(...args) => {
         bind?.onTouchEnd?.(...args);
         onMoveEnd?.();
