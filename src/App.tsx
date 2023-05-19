@@ -454,15 +454,24 @@ const VideoBackground: ContentBackground = ({
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.ontimeupdate = (event) => {
-        const currentTime =
-          (event.currentTarget as HTMLVideoElement)?.currentTime || 0;
-        const duration =
-          (event.currentTarget as HTMLVideoElement)?.duration || 0;
-        const progress = (currentTime / duration) * 100;
+        const video = event.currentTarget as HTMLVideoElement;
+
+        const CUT_VIDEO_ENDING_SECONDS = 1;
+
+        const currentTimeSeconds = video.currentTime || 0;
+        const durationSeconds = video.duration
+          ? video.duration - CUT_VIDEO_ENDING_SECONDS // because state update happens later than video finishes
+          : 0;
+        const progress = (currentTimeSeconds / durationSeconds) * 100;
 
         if (Number.isNaN(progress)) return;
 
-        setProgress(progress);
+        function clamp(value: number, min: number, max: number) {
+          return Math.min(Math.max(value, min), max);
+        }
+        const clampedValue = clamp(progress, 0, 100);
+
+        setProgress(clampedValue);
       };
     }
   }, []);
