@@ -23,7 +23,7 @@ const storyGroups: StoryGroup[] = [
   {
     id: "1",
     title: "Story group #1",
-    src: "story-group-1.jpeg",
+    src: "story-1.jpg",
     stories: [
       {
         id: "1",
@@ -40,7 +40,7 @@ const storyGroups: StoryGroup[] = [
   {
     id: "2",
     title: "Story group #2",
-    src: "story-group-1.jpeg",
+    src: "story-2.jpg",
     stories: [
       {
         id: "3",
@@ -72,7 +72,7 @@ const storyGroups: StoryGroup[] = [
   {
     id: "3",
     title: "Story group #3",
-    src: "story-group-1.jpeg",
+    src: "story-3.jpg",
     stories: [
       {
         id: "8",
@@ -94,7 +94,7 @@ const storyGroups: StoryGroup[] = [
   {
     id: "4",
     title: "Story group #4",
-    src: "story-group-1.jpeg",
+    src: "story-4.jpg",
     stories: [
       {
         id: "8",
@@ -108,6 +108,38 @@ const storyGroups: StoryGroup[] = [
       },
       {
         id: "10",
+        type: "video",
+        src: "video/story-3.mp4",
+      },
+    ],
+  },
+  {
+    id: "5",
+    title: "Story group #5",
+    src: "story-5.jpg",
+    stories: [
+      {
+        id: "11",
+        type: "video",
+        src: "video/story-1.mp4",
+      },
+      {
+        id: "12",
+        type: "image",
+        src: "story-1.jpg",
+      },
+      {
+        id: "13",
+        type: "video",
+        src: "video/story-2.mp4",
+      },
+      {
+        id: "14",
+        type: "image",
+        src: "story-2.jpg",
+      },
+      {
+        id: "15",
         type: "video",
         src: "video/story-3.mp4",
       },
@@ -237,7 +269,7 @@ function App() {
   );
 }
 
-const UPDATE_PROGRESS_EVERY_MS = 200;
+const UPDATE_PROGRESS_EVERY_MS = 300;
 
 const StoryGroup: FC<{
   storyGroup: StoryGroup;
