@@ -252,8 +252,12 @@ function App() {
                 />
               );
             }}
-            onMoveStart={pauseVideoPubSub.publish}
-            onMoveEnd={unpauseVideoPubSub.publish}
+            onMoveStart={() => {
+              pauseVideoPubSub.publish();
+            }}
+            onMoveEnd={() => {
+              unpauseVideoPubSub.publish();
+            }}
           />
         </ModalContent>
       </Modal>
