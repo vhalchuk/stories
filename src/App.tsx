@@ -1,5 +1,14 @@
 import "./App.css";
-import { Box, Circle, Flex, IconButton, Spinner, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Circle,
+  Flex,
+  IconButton,
+  Spinner,
+  Text,
+  Modal,
+  ModalContent,
+} from "@chakra-ui/react";
 import { FC, ReactNode, useEffect, useRef, useState } from "react";
 import { Cube } from "./dependencies/Cube";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -147,23 +156,6 @@ const storyGroups: StoryGroup[] = [
   },
 ];
 
-const Modal: FC<{ children: ReactNode }> = ({ children }) => {
-  return (
-    <Box
-      style={{
-        position: "absolute",
-        inset: 0,
-        height: "100%",
-        width: "100%",
-        zIndex: 1000,
-        backgroundColor: "white",
-      }}
-    >
-      {children}
-    </Box>
-  );
-};
-
 type Subscriber<T extends any[]> = (...args: T) => void;
 
 class PubSub<T extends any[]> {
@@ -192,7 +184,8 @@ const moveEndedPubSub = new PubSub();
 function App() {
   const [storyGroupIndex, setStoryGroupIndex] = useState<null | number>(null);
 
-  const onClose = () => {
+  const isOpen = storyGroupIndex !== null;
+  const handleClose = () => {
     setStoryGroupIndex(null);
   };
 
@@ -208,10 +201,10 @@ function App() {
           onClick={() => setStoryGroupIndex(index)}
         />
       ))}
-      {storyGroupIndex !== null && (
-        <Modal>
+      <Modal isOpen={isOpen} onClose={handleClose} size="full">
+        <ModalContent>
           <Cube
-            index={storyGroupIndex}
+            index={storyGroupIndex!}
             onChange={setStoryGroupIndex}
             hasNext={(index) => index < storyGroups.length - 1}
             lockScrolling
@@ -241,7 +234,7 @@ function App() {
                 if (hasNextStoryGroup) {
                   setStoryGroupIndex(nextStoryGroupIndex);
                 } else {
-                  onClose();
+                  handleClose();
                 }
               };
 
@@ -251,7 +244,7 @@ function App() {
                   storyGroup={storyGroup}
                   onNoPreviousStory={handleNoPreviousStory}
                   onNoNextStory={handleNoNextStory}
-                  onClose={onClose}
+                  onClose={handleClose}
                   isActiveStoryGroup={storyGroupIndex === index}
                 />
               );
@@ -263,8 +256,8 @@ function App() {
               moveEndedPubSub.publish();
             }}
           />
-        </Modal>
-      )}
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 }
