@@ -4,6 +4,7 @@ import { FC, ReactNode, useEffect, useRef, useState } from "react";
 import { Cube } from "./dependencies/Cube";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useLatestRef } from "./dependencies/useLatestRef";
+import { useCallbackRef } from "./dependencies/useCallbackRef";
 
 type Story = {
   id: string;
@@ -236,6 +237,8 @@ function App() {
   );
 }
 
+const UPDATE_PROGRESS_EVERY_MS = 500;
+
 const StoryGroup: FC<{
   storyGroup: StoryGroup;
   onNoPreviousStory: () => void;
@@ -265,7 +268,7 @@ const StoryGroup: FC<{
     }
   };
 
-  const handleNextTap = () => {
+  const handleNextTap = useCallbackRef(() => {
     const nextIndex = storyIndex + 1;
     const hasNextStory = !!storyGroup.stories[nextIndex];
 
@@ -275,7 +278,13 @@ const StoryGroup: FC<{
     } else {
       onNoNextStory();
     }
-  };
+  });
+
+  useEffect(() => {
+    if (progress === 100) {
+      setTimeout(handleNextTap, UPDATE_PROGRESS_EVERY_MS);
+    }
+  }, [progress]);
 
   const ContentBackground: ContentBackground =
     story.type === "image" ? ImageBackground : VideoBackground;
@@ -354,7 +363,9 @@ const ProgressLine: FC<{ progress: number; hasTransition: boolean }> = ({
           height: "2px",
           borderRadius: "1px",
           backgroundColor: "white",
-          transition: hasTransition ? "width 0.5s linear" : undefined,
+          transition: hasTransition
+            ? `width ${UPDATE_PROGRESS_EVERY_MS}ms linear`
+            : undefined,
         }}
       ></Box>
     </Box>
@@ -374,30 +385,57 @@ const ImageBackground: ContentBackground = ({
   active,
   children,
 }) => {
+  const imageRef = useRef<HTMLImageElement>(null);
+
   useEffect(() => {
-    if (!active) return;
+    const image = imageRef.current;
 
-    const intervalId = setInterval(() => {
-      setProgress((prevProgress) => {
-        // Increase the progress by 10% every second
-        const newProgress = prevProgress + 10;
-        return newProgress <= 100 ? newProgress : 100;
-      });
-    }, 500);
+    if (!image || !active) return;
 
-    // Clear the interval when the component unmounts
-    return () => clearInterval(intervalId);
-  }, [active]);
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const startProgressInterval = () => {
+      intervalId = setInterval(() => {
+        setProgress((prevProgress) => {
+          // Increase the progress by 10% every UPDATE_PROGRESS_EACH_MS
+          const newProgress = prevProgress + 10;
+          return newProgress <= 100 ? newProgress : 100;
+        });
+      }, UPDATE_PROGRESS_EVERY_MS);
+    };
+
+    if (image.complete) {
+      startProgressInterval();
+    } else {
+      image.addEventListener("load", startProgressInterval);
+    }
+
+    return () => {
+      image.removeEventListener("load", startProgressInterval);
+      intervalId && clearInterval(intervalId);
+    };
+  }, [active, src]);
 
   return (
     <Box
-      backgroundImage={`url(${src})`}
-      bgSize="cover"
       style={{
+        position: "relative",
         height: "100%",
         width: "100%",
       }}
     >
+      <img
+        ref={imageRef}
+        src={src}
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+        }}
+        loading="lazy"
+        alt="Story"
+      />
       {children}
     </Box>
   );
