@@ -365,10 +365,30 @@ type ContentBackground = FC<{
   src: string;
   children: ReactNode;
   active: boolean;
-  setProgress: (progress: number) => void;
+  setProgress: (progress: number | ((prevProgress: number) => number)) => void;
 }>;
 
-const ImageBackground: ContentBackground = ({ src, children }) => {
+const ImageBackground: ContentBackground = ({
+  src,
+  setProgress,
+  active,
+  children,
+}) => {
+  useEffect(() => {
+    if (!active) return;
+
+    const intervalId = setInterval(() => {
+      setProgress((prevProgress) => {
+        // Increase the progress by 10% every second
+        const newProgress = prevProgress + 10;
+        return newProgress <= 100 ? newProgress : 100;
+      });
+    }, 500);
+
+    // Clear the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, [active]);
+
   return (
     <Box
       backgroundImage={`url(${src})`}
