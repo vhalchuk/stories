@@ -458,6 +458,7 @@ const ImageContent: ContentComponent = memo(({ src, setProgress, active }) => {
       intervalId && clearInterval(intervalId);
       unsubscribeFromMoveStarted();
       unsubscribeFromMoveEnded();
+      setProgress(0);
     };
   }, [active, src, setProgress]);
 
