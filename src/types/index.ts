@@ -10,3 +10,8 @@ export type StoryGroup = {
   stories: Story[];
   src: string;
 };
+
+export type Short = Story & {
+  published: string;
+  title: string;
+};

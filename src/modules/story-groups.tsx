@@ -14,9 +14,9 @@ import { Cube } from "../dependencies/Cube";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useLatestRef } from "../dependencies/useLatestRef";
 import { useCallbackRef } from "../dependencies/useCallbackRef";
-import { StoryGroup } from "../types";
+import { type StoryGroup as StoryGroupT } from "../types";
 
-const storyGroups: StoryGroup[] = [
+const storyGroups: StoryGroupT[] = [
   {
     id: "1",
     title: "Story group #1",
@@ -178,7 +178,7 @@ export const StoryGroups: FC = () => {
   };
 
   return (
-    <Flex justify="space-between" gap="0.5rem" padding="1rem" width="100%">
+    <Flex gap="0.5rem" padding="1rem">
       {storyGroups.map((storyGroup, index) => (
         <Circle
           key={storyGroup.id}
@@ -256,7 +256,7 @@ export const StoryGroups: FC = () => {
 const UPDATE_PROGRESS_EVERY_MS = 300;
 
 const StoryGroup: FC<{
-  storyGroup: StoryGroup;
+  storyGroup: StoryGroupT;
   onNoPreviousStory: () => void;
   onNoNextStory: () => void;
   onClose: () => void;
