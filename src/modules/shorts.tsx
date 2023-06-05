@@ -18,6 +18,27 @@ const shorts: ShortT[] = [
     published: "1 min ago",
   },
   {
+    id: "8",
+    type: "video",
+    src: "video/story-1.mp4",
+    title: "video/story-1.mp4",
+    published: "1 min ago",
+  },
+  {
+    id: "9",
+    type: "video",
+    src: "video/story-2.mp4",
+    title: "video/story-2.mp4",
+    published: "1 min ago",
+  },
+  {
+    id: "10",
+    type: "video",
+    src: "video/story-3.mp4",
+    title: "video/story-3.mp4",
+    published: "1 min ago",
+  },
+  {
     id: "11",
     type: "video",
     src: "video/story-1.mp4",
