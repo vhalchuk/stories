@@ -14,19 +14,7 @@ import { Cube } from "../dependencies/Cube";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useLatestRef } from "../dependencies/useLatestRef";
 import { useCallbackRef } from "../dependencies/useCallbackRef";
-
-type Story = {
-  id: string;
-  type: "video" | "image";
-  src: string;
-};
-
-type StoryGroup = {
-  id: string;
-  title: string;
-  stories: Story[];
-  src: string;
-};
+import { StoryGroup } from "../types";
 
 const storyGroups: StoryGroup[] = [
   {
