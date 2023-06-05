@@ -11,7 +11,9 @@ export type StoryGroup = {
   src: string;
 };
 
-export type Short = Story & {
+export type Short = {
+  id: string;
   published: string;
   title: string;
+  storyGroup: StoryGroup;
 };

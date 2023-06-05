@@ -1,81 +1,17 @@
-import { type FC, useEffect, useRef } from "react";
-import { type Short as ShortT } from "../types";
+import { type FC, useEffect, useRef, useState } from "react";
+import { type Short as ShortT, StoryGroup } from "../types";
 import { Badge, Box, Flex, Text } from "@chakra-ui/react";
+import { StoriesModal } from "../dependencies/Story";
 
-const shorts: ShortT[] = [
-  {
-    id: "1",
-    type: "image",
-    src: "story-1.jpg",
-    title: "story-1.jpg",
-    published: "1 min ago",
-  },
-  {
-    id: "2",
-    type: "image",
-    src: "story-2.jpg",
-    title: "story-2.jpg",
-    published: "1 min ago",
-  },
-  {
-    id: "8",
-    type: "video",
-    src: "video/story-1.mp4",
-    title: "video/story-1.mp4",
-    published: "1 min ago",
-  },
-  {
-    id: "9",
-    type: "video",
-    src: "video/story-2.mp4",
-    title: "video/story-2.mp4",
-    published: "1 min ago",
-  },
-  {
-    id: "10",
-    type: "video",
-    src: "video/story-3.mp4",
-    title: "video/story-3.mp4",
-    published: "1 min ago",
-  },
-  {
-    id: "11",
-    type: "video",
-    src: "video/story-1.mp4",
-    title: "video/story-1.mp4",
-    published: "1 min ago",
-  },
-  {
-    id: "12",
-    type: "image",
-    src: "story-1.jpg",
-    title: "story-1.jpg",
-    published: "1 min ago",
-  },
-  {
-    id: "13",
-    type: "video",
-    src: "video/story-2.mp4",
-    title: "video/story-2.mp4",
-    published: "1 min ago",
-  },
-  {
-    id: "14",
-    type: "image",
-    src: "story-2.jpg",
-    title: "story-2.jpg",
-    published: "1 min ago",
-  },
-  {
-    id: "15",
-    type: "video",
-    src: "video/story-3.mp4",
-    title: "video/story-3.mp4",
-    published: "1 min ago",
-  },
-];
+export const Shorts: FC<{ shorts: ShortT[] }> = ({ shorts }) => {
+  const [storyGroupIndex, setStoryGroupIndex] = useState<null | number>(null);
 
-export const Shorts: FC = () => {
+  const isOpen = storyGroupIndex !== null;
+  const handleClose = () => {
+    setStoryGroupIndex(null);
+  };
+  const storyGroups = shorts.map<StoryGroup>((short) => short.storyGroup);
+
   return (
     <Flex
       gap="1rem"
@@ -90,16 +26,41 @@ export const Shorts: FC = () => {
         },
       }}
     >
-      {shorts.map((short) => {
-        return <Short key={short.id} short={short} />;
+      {shorts.map((short, index) => {
+        const story = short.storyGroup.stories[0];
+
+        return (
+          <Short
+            id={short.id}
+            key={short.id}
+            published={short.published}
+            title={short.title}
+            src={story.src}
+            type={story.type}
+            onClick={() => setStoryGroupIndex(index)}
+          />
+        );
       })}
+      <StoriesModal
+        storyGroups={storyGroups}
+        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+        storyGroupIndex={storyGroupIndex!}
+        setStoryGroupIndex={setStoryGroupIndex}
+        isOpen={isOpen}
+        onClose={handleClose}
+      />
     </Flex>
   );
 };
 
 const Short: FC<{
-  short: ShortT;
-}> = ({ short }) => {
+  id: string;
+  src: string;
+  published: string;
+  title: string;
+  type: "video" | "image";
+  onClick: () => void;
+}> = ({ src, published, title, type, onClick }) => {
   return (
     <Box
       style={{
@@ -110,12 +71,9 @@ const Short: FC<{
         borderRadius: "0.5rem",
         flexShrink: 0,
       }}
+      onClick={onClick}
     >
-      {short.type === "image" ? (
-        <ImageBg src={short.src} />
-      ) : (
-        <VideoBg src={short.src} />
-      )}
+      {type === "image" ? <ImageBg src={src} /> : <VideoBg src={src} />}
       <Box
         style={{
           position: "relative",
@@ -139,10 +97,10 @@ const Short: FC<{
               justifyContent: "flex-end",
             }}
           >
-            <Badge>{short.published}</Badge>
+            <Badge>{published}</Badge>
           </Box>
           <Box>
-            <Text color="white">{short.title}</Text>
+            <Text color="white">{title}</Text>
           </Box>
         </Box>
       </Box>
