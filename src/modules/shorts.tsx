@@ -2,8 +2,12 @@ import { type FC, useEffect, useRef, useState } from "react";
 import { type Short as ShortT, StoryGroup } from "../types";
 import { Badge, Box, Flex, Text } from "@chakra-ui/react";
 import { StoriesModal } from "../dependencies/Story";
+import { useInView } from "react-intersection-observer";
 
-export const Shorts: FC<{ shorts: ShortT[] }> = ({ shorts }) => {
+export const Shorts: FC<{ shorts: ShortT[]; paused?: boolean }> = ({
+  shorts,
+  paused,
+}) => {
   const [storyGroupIndex, setStoryGroupIndex] = useState<null | number>(null);
 
   const isOpen = storyGroupIndex !== null;
@@ -38,6 +42,7 @@ export const Shorts: FC<{ shorts: ShortT[] }> = ({ shorts }) => {
             src={story.src}
             type={story.type}
             onClick={() => setStoryGroupIndex(index)}
+            paused={paused}
           />
         );
       })}
@@ -60,9 +65,16 @@ const Short: FC<{
   title: string;
   type: "video" | "image";
   onClick: () => void;
-}> = ({ src, published, title, type, onClick }) => {
+  paused?: boolean;
+}> = ({ src, published, title, type, onClick, paused }) => {
+  const { ref, inView } = useInView({ triggerOnce: true });
+
+  const showImage = inView && type === "image";
+  const showVideo = inView && type === "video";
+
   return (
     <Box
+      ref={ref}
       style={{
         backgroundColor: "#3a3a3a",
         position: "relative",
@@ -73,7 +85,8 @@ const Short: FC<{
       }}
       onClick={onClick}
     >
-      {type === "image" ? <ImageBg src={src} /> : <VideoBg src={src} />}
+      {showImage && <ImageBg src={src} />}
+      {showVideo && <VideoBg src={src} paused={paused} />}
       <Box
         style={{
           position: "relative",
@@ -125,7 +138,7 @@ const ImageBg: FC<{ src: string }> = ({ src }) => {
   );
 };
 
-const VideoBg: FC<{ src: string }> = ({ src }) => {
+const VideoBg: FC<{ src: string; paused?: boolean }> = ({ src, paused }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const loadingSpinnerRef = useRef<HTMLDivElement>(null);
 
@@ -135,6 +148,8 @@ const VideoBg: FC<{ src: string }> = ({ src }) => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          if (paused) return;
+
           if (entry.isIntersecting) {
             // If the video is in viewport, play the video
             video?.play();
@@ -158,7 +173,7 @@ const VideoBg: FC<{ src: string }> = ({ src }) => {
         observer.unobserve(video);
       }
     };
-  }, []);
+  }, [paused]);
 
   // MANAGE LOADING STATE
   useEffect(() => {

@@ -130,40 +130,6 @@ export const storyGroups: StoryGroupT[] = [
 
 export const shorts: ShortT[] = [
   {
-    id: "1",
-    title: "Short #1",
-    published: "1 min ago",
-    storyGroup: {
-      id: "1",
-      title: "Story group #1",
-      src: "story-1.jpg",
-      stories: [
-        {
-          id: "1",
-          type: "image",
-          src: "story-1.jpg",
-        },
-      ],
-    },
-  },
-  {
-    id: "2",
-    title: "Short #2",
-    published: "1 min ago",
-    storyGroup: {
-      id: "2",
-      title: "Story group #2",
-      src: "story-1.jpg",
-      stories: [
-        {
-          id: "1",
-          type: "image",
-          src: "story-2.jpg",
-        },
-      ],
-    },
-  },
-  {
     id: "8",
     title: "Short #3",
     published: "1 min ago",
@@ -231,23 +197,7 @@ export const shorts: ShortT[] = [
       ],
     },
   },
-  {
-    id: "12",
-    title: "Short #7",
-    published: "1 min ago",
-    storyGroup: {
-      id: "12",
-      title: "Story group #7",
-      src: "story-1.jpg",
-      stories: [
-        {
-          id: "1",
-          type: "image",
-          src: "story-1.jpg",
-        },
-      ],
-    },
-  },
+
   {
     id: "13",
     title: "Short #8",
@@ -266,23 +216,6 @@ export const shorts: ShortT[] = [
     },
   },
   {
-    id: "14",
-    title: "Short #9",
-    published: "1 min ago",
-    storyGroup: {
-      id: "14",
-      title: "Story group #9",
-      src: "story-1.jpg",
-      stories: [
-        {
-          id: "1",
-          type: "image",
-          src: "story-2.jpg",
-        },
-      ],
-    },
-  },
-  {
     id: "15",
     title: "Short #10",
     published: "1 min ago",
@@ -295,6 +228,74 @@ export const shorts: ShortT[] = [
           id: "1",
           type: "video",
           src: "video/story-3.mp4",
+        },
+      ],
+    },
+  },
+  {
+    id: "1",
+    title: "Short #1",
+    published: "1 min ago",
+    storyGroup: {
+      id: "1",
+      title: "Story group #1",
+      src: "story-1.jpg",
+      stories: [
+        {
+          id: "1",
+          type: "image",
+          src: "story-1.jpg",
+        },
+      ],
+    },
+  },
+  {
+    id: "2",
+    title: "Short #2",
+    published: "1 min ago",
+    storyGroup: {
+      id: "2",
+      title: "Story group #2",
+      src: "story-1.jpg",
+      stories: [
+        {
+          id: "1",
+          type: "image",
+          src: "story-2.jpg",
+        },
+      ],
+    },
+  },
+  {
+    id: "12",
+    title: "Short #7",
+    published: "1 min ago",
+    storyGroup: {
+      id: "12",
+      title: "Story group #7",
+      src: "story-1.jpg",
+      stories: [
+        {
+          id: "1",
+          type: "image",
+          src: "story-1.jpg",
+        },
+      ],
+    },
+  },
+  {
+    id: "14",
+    title: "Short #9",
+    published: "1 min ago",
+    storyGroup: {
+      id: "14",
+      title: "Story group #9",
+      src: "story-1.jpg",
+      stories: [
+        {
+          id: "1",
+          type: "image",
+          src: "story-2.jpg",
         },
       ],
     },
